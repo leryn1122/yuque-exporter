@@ -7,8 +7,12 @@ name = "pypi"
 requests = "*"
 prettytable = "*"
 gitpython = "*"
+pytz = "*"
 
 [dev-packages]
+pyinstaller = "*"
+pylint = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.11"
