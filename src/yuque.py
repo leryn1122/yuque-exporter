@@ -30,8 +30,8 @@ class YuqueExporter:
             "X-Auth-Token": self._token
         }
         self._repos = {}
-        self._export_dir = os.path.join('..', 'repo', 'wiki')
-        self._timestamp = self.fetch_timestamp()
+        self._export_dir: None | os.PathLike[str] = None
+        self._timestamp: None | datetime = None
 
     def get_user_info(self):
         """
@@ -106,19 +106,22 @@ class YuqueExporter:
         repo_id = self.get_repos()[repo_name]
         repo = os.path.join('..', 'repo', repo_name)
         self._export_dir = repo
+        self._timestamp = self.fetch_timestamp()
         make_directory(self._export_dir)
         for _docs in self.get_docs(repo_id):
             self.download_markdown(repo_id, _docs['slug'])
         self.save_timestamp()
 
     def save_timestamp(self):
-        with open(os.path.join(self._export_dir, "_timestamp.txt"), 'w', encoding='utf-8') as f:
+        with open(os.path.join(self._export_dir, '_timestamp.txt'), 'w', encoding='utf-8') as f:
             f.write(datetime.now(pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%sZ"))
 
     def fetch_timestamp(self) -> datetime:
         try:
             with open(os.path.join(self._export_dir, '_timestamp.txt'), 'r', encoding='utf-8') as f:
-                return datetime.fromisoformat(f.read().strip('\n'))
+                timestamp = f.read().strip('\n')
+                log.info("Read timestamp: %s", timestamp)
+                return datetime.fromisoformat(timestamp)
         except FileNotFoundError:
             log.info("Missing file `_timestamp.txt`, using current timestamp.")
             return datetime.fromisoformat('1970-01-01T00:00:00.000Z')

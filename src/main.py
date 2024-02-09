@@ -31,4 +31,4 @@ if __name__ == '__main__':
         yuque.dump_repo('wiki')
 
     if cli_args.git_push:
-        github.git_commit_repo(r"wiki")
+        github.git_commit_repo(r'wiki')
