@@ -35,13 +35,13 @@ class YuqueExporter:
 
     def get_user_info(self):
         """
-        Get the Yuque user info, and save it in `~/.yuque`
+        Get the Yuque user info, and save it in `~/.yuque/config`
         If the file does not exist, it will be created after interaction with command line.
         """
-        user_info_file = os.path.join(os.path.expanduser('~'), '.yuque')
+        user_info_file = os.path.join(os.path.expanduser('~'), '.yuque', 'config')
         if os.path.isfile(user_info_file):
             with open(user_info_file, encoding='utf-8') as f:
-                user_info = f.read().split('|')
+                user_info = f.read().strip('\n').split('|')
         else:
             namespace = input('输入语雀namespace: ')
             access_token = input('输入语雀token: ')
