@@ -1,0 +1,89 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: yuque-exporter
+  namespace: cron
+  labels:
+    app.kubernetes.io/name: yuque-exporter
+    app.kubernetes.io/instance: yuque-exporter
+    app.kubernetes.io/component: exporter
+    io.github.leryn/schedule-type: cron
+  annotations:
+    app.kubernetes.io/description: |-
+      Cron job to export Yuque repo to GitHub
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  successfulJobsHistoryLimit: 1
+  schedule: '0 0/8 * * *'
+  jobTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: yuque-exporter
+        app.kubernetes.io/instance: yuque-exporter
+        app.kubernetes.io/component: exporter
+        io.github.leryn/schedule-type: cron
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: yuque-exporter
+            app.kubernetes.io/instance: yuque-exporter
+            app.kubernetes.io/component: exporter
+            io.github.leryn/schedule-type: cron
+        spec:
+          initContainers:
+            - name: git-clone-repo
+              image: bitnami/git:2
+              imagePullPolicy: IfNotPresent
+              workingDir: /tmp/project
+              args:
+                - "git"
+                - "clone"
+                - "$(GIT_REPO)"
+                - "--depth"
+                - "1"
+                - "."
+              env:
+                - name: GIT_REPO
+                  value: git@github.com:leryn1122/wiki.git
+              volumeMounts:
+                - name: repo-dir
+                  mountPath: /tmp/project
+                - name: github-ssh-dir
+                  mountPath: /root/.ssh
+          containers:
+            - name: yuque-exporter
+              image: harbor.leryn.top/library/yuque-exporter:0.1.0-20240210
+              imagePullPolicy: Always
+              args:
+                - "--log-level=INFO"
+                - "--yuque"
+                - "--git-push"
+              volumeMounts:
+                - name: host-time
+                  mountPath: /etc/localtime
+                  readOnly: true
+                - name: repo-dir
+                  mountPath: /repo/wiki
+                - name: yuque-token-dir
+                  mountPath: /root/.yuque
+                  readOnly: true
+                - name: github-ssh-dir
+                  mountPath: /root/.ssh
+                  readOnly: true
+          restartPolicy: OnFailure
+          volumes:
+            - name: host-time
+              hostPath:
+                path: /etc/localtime
+                type: File
+            - name: repo-dir
+              emptyDir: {}
+            - name: yuque-token-dir
+              secret:
+                secretName: yuque-secret
+            - name: github-ssh-dir
+              hostPath:
+                path: /root/.ssh

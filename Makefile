@@ -72,20 +72,22 @@ test: ## Run all integrity tests
 .PHONY: build
 build: ## Run the target artifact
 	$(PYTHON_MANAGER) run $(PYTHON_BUILDER) \
-	  --onefile $(MAIN_ENTRY_FILE) \
 	  --name $(PROJECT) \
+	  --onefile $(MAIN_ENTRY_FILE) \
+	  --strip \
+	  --clean \
 	  --icon resources/favicon.ico \
 	  --hidden-import requests \
 	  --hidden-import prettytable \
 	  --hidden-import gitpython \
-	  --hidden-import pytz \
-	  --clean
+	  --hidden-import pytz
 
 .PHONY: image
 image: ## Build the OCI image
 	DOCKER_BUILDKIT=1 $(DOCKER) build \
 	  --tag $(NIGHTLY_IMAGE_NAME) \
-	  --remove \
 	  --file $(DOCKERFILE) \
+	  --build-arg MIRRORS_SOURCE=mirrors.tuna.tsinghua.edu.cn \
+	  --build-arg PYPI_SOURCE=pypi.tuna.tsinghua.edu.cn \
 	  $(DOCKER_CONTEXT)
 	$(DOCKER) tag $(NIGHTLY_IMAGE_NAME) $(FULL_IMAGE_NAME)

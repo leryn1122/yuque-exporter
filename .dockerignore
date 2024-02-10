@@ -1,0 +1,6 @@
+api
+build
+deploy
+dist
+.git*
+README.md
