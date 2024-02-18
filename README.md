@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Yuque-exporter is a simple tools to export Yuque repo to GitHub.
+Yuque-exporter is a simple tool to export Yuque repo to GitHub.
 
 ## Table of Contents
 
