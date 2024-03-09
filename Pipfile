@@ -4,10 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-gitpython = "*"
-prettytable = "*"
-pytz = "*"
-requests = "*"
+gitpython = "3.1.41"
+prettytable = "3.9.0"
+pytz = "2024.1"
+requests = "2.31.0"
 
 [dev-packages]
 pyinstaller = "*"

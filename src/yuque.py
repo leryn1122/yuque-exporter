@@ -4,16 +4,16 @@ from datetime import datetime
 import http
 import logging as log
 import os
-import re
 from typing import List, Any, AnyStr
 
 import pytz
 import requests
+import support
 
-
-def make_directory(path) -> None:
-    if not os.path.exists(path):
-        os.makedirs(path)
+from markdown import (MarkdownProcessFilter,
+                      MarkdownEraseEmptyAnchorFilter,
+                      MarkdownRewriteImageFilter,
+                      MarkdownEraseLineBreakFilter)
 
 
 class YuqueExporter:
@@ -24,16 +24,16 @@ class YuqueExporter:
 
     def __init__(self):
         self._namespace, self._token = self.get_user_info()
-        self._headers = {
+        self._headers: dict[AnyStr, AnyStr] = {
             "Content-Type": "application/json",
             "User-Agent": "python script",
             "X-Auth-Token": self._token
         }
         self._repos = {}
-        self._export_dir: None | os.PathLike[str] = None
+        self._export_dir: None | support.StrOrBytesPath = None
         self._timestamp: None | datetime = None
 
-    def get_user_info(self):
+    def get_user_info(self) -> List[AnyStr]:
         """
         Get the Yuque user info, and save it in `~/.yuque/config`
         If the file does not exist, it will be created after interaction with command line.
@@ -71,7 +71,7 @@ class YuqueExporter:
             self._repos[repo_name] = repo_id
         return self._repos
 
-    def get_docs(self, repo_id) -> List:
+    def get_docs(self, repo_id) -> List[Any]:
         docs = []
         offset = 0
         while True:
@@ -90,7 +90,7 @@ class YuqueExporter:
             offset += 100
         return docs
 
-    def download_markdown(self, repo_id, slug):
+    def download_markdown(self, repo_id, slug) -> None:
         url = f'/repos/{repo_id}/docs/{slug}'
         result = self.invoke_api(url).get('data')
         content = result.get('body')
@@ -99,7 +99,7 @@ class YuqueExporter:
                                            content=content)
         processor.save_markdown(slug)
 
-    def dump_repo(self, repo_name):
+    def dump_repo(self, repo_name: str) -> None:
         """
         Dump the all documents in the specified repo
         """
@@ -107,12 +107,12 @@ class YuqueExporter:
         repo = os.path.join('..', 'repo', repo_name)
         self._export_dir = repo
         self._timestamp = self.fetch_timestamp()
-        make_directory(self._export_dir)
+        support.make_directory(self._export_dir)
         for _docs in self.get_docs(repo_id):
             self.download_markdown(repo_id, _docs['slug'])
         self.save_timestamp()
 
-    def save_timestamp(self):
+    def save_timestamp(self) -> None:
         with open(os.path.join(self._export_dir, '_timestamp.txt'), 'w', encoding='utf-8') as f:
             f.write(datetime.now(pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%sZ"))
 
@@ -129,48 +129,23 @@ class YuqueExporter:
 
 class YuqueDocumentProcessor:
     def __init__(self, token: str, export_dir: str, content: AnyStr):
-        self._token = token
-        self._export_dir = export_dir
-        self._content = content
+        self._token: str = token
+        self._export_dir: str = export_dir
+        self._content: str = content
+        self._filters: List[MarkdownProcessFilter] = [
+            MarkdownEraseEmptyAnchorFilter(),
+            MarkdownRewriteImageFilter(path=self._export_dir, token=self._token),
+            MarkdownEraseLineBreakFilter()
+        ]
 
     def save_markdown(self, slug: str):
-        content, images = self.rewrite_image_address()
-        content = self.erase_empty_element()
+        for filter in self._filters:
+            self._content = filter.do_filter(content=self._content)
 
         markdown_file = os.path.join(self._export_dir, slug.split('.')[0], slug.replace(' ', '') + '.md')
         markdown_dir = os.path.join(self._export_dir, slug.split('.')[0])
-        make_directory(markdown_dir)
+        support.make_directory(markdown_dir)
         with open(markdown_file, 'w', encoding='utf-8') as f:
             log.info("Saving markdown: %s", slug)
-            f.write(content)
-
-        if images:
-            make_directory(os.path.join(self._export_dir, 'assets'))
-            for _image in images:
-                log.info("Downloading image: %s", _image['img_src'])
-                image_file = os.path.join(self._export_dir, 'assets', _image['filename'])
-                resp = requests.get(_image['img_src'], headers={
-                    "User-Agent": "python script",
-                    "X-Auth-Token": self._token
-                }, timeout=1000)
-                with open(image_file, 'wb') as f:
-                    f.write(resp.content)
-        return content
-
-    def rewrite_image_address(self):
-        """
-        Use regular expression to replace image addresses by new local-redirected ones.
-        """
-        pattern = r"!\[(?P<img_name>.*?)\]" \
-                  r"\((?P<img_src>https:\/\/cdn\.nlark\.com\/yuque.*\/(?P<slug>\d+)\/(?P<filename>.*?\.[a-zA-z]+)).*\)"
-        repl = r"![\g<img_name>](./../assets/\g<filename>)"
-        images = [_.groupdict() for _ in re.finditer(pattern, self._content)]
-        new_content = re.sub(pattern, repl, self._content)
-        self._content = new_content
-        return new_content, images
-
-    def erase_empty_element(self):
-        pattern = r"<a\sname=\"[a-zA-Z0-9]+\"></a>"
-        new_content = re.sub(pattern, '', self._content)
-        self._content = new_content
-        return new_content
+            f.write(self._content)
+        return self._content
