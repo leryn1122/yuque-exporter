@@ -10,10 +10,10 @@ import pytz
 import requests
 import support
 
-from markdown import (MarkdownProcessFilter,
-                      MarkdownEraseEmptyAnchorFilter,
-                      MarkdownRewriteImageFilter,
-                      MarkdownEraseLineBreakFilter)
+from md_filter import (MarkdownProcessFilter,
+                       MarkdownEraseEmptyAnchorFilter,
+                       MarkdownRewriteImageFilter,
+                       MarkdownEraseLineBreakFilter)
 
 
 class YuqueExporter:

@@ -3,9 +3,7 @@
 import logging as log
 import os
 import re
-from re import Match
 import requests
-from typing import List
 
 import support
 
@@ -69,7 +67,7 @@ class MarkdownRewriteImageFilter(MarkdownProcessFilter):
                          r'(?P<img_src>' + MarkdownRewriteImageFilter.HTTP_URL_REGEX + ')',
                          1))
 
-    def do_filter(self, content: str, **kwargs) -> (str, List[Match[str]]):
+    def do_filter(self, content: str, **kwargs) -> str:
         images = [_.groupdict() for _ in re.finditer(self._pattern, content)]
         repl = r"![\g<img_name>](./../assets/\g<filename>)\n"
         content = re.sub(self._pattern, repl, content)
