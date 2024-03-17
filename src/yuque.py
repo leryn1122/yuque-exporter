@@ -88,10 +88,11 @@ class YuqueExporter:
             for _doc in result:
                 # if _doc['slug'] != "readme":
                 #     continue
-                if datetime.fromisoformat(_doc['updated_at']) > self._timestamp \
-                        or datetime.fromisoformat(_doc['content_updated_at']) > self._timestamp\
-                        or datetime.fromisoformat(_doc['published_at']) > self._timestamp\
-                        or True:
+                # if datetime.fromisoformat(_doc['updated_at']) > self._timestamp \
+                #         or datetime.fromisoformat(_doc['content_updated_at']) > self._timestamp\
+                #         or datetime.fromisoformat(_doc['published_at']) > self._timestamp\
+                #         or True:
+                if True:
                     docs.append({
                         "id": _doc['id'],
                         "name": _doc['title'],

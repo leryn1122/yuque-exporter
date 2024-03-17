@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 PROJECT := yuque-exporter
 NAME := yuque-exporter
-VERSION := 0.1.0
+VERSION := 1.0.0
 BUILD_DATE := $(shell date +%Y%m%d)
 GIT_VERSION := $(shell git describe --long --all 2>/dev/null)
 SHA := $(shell git rev-parse --short=8 HEAD 2>/dev/null)

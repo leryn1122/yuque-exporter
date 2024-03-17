@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yuque-exporter"
-version = "0.1.0"
+version = "1.0.0"
 description = "Yuque-exporter is a simple tool to export Yuque repo to GitHub."
 authors = ["leryn <pinktin@sina.com>"]
 license = "MIT"

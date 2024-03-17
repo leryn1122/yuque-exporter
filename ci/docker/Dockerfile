@@ -5,11 +5,14 @@ ARG PYPI_SOURCE="pypi.org"
 
 RUN sed -i "s/dl-cdn.alpinelinux.org/${MIRRORS_SOURCE}/g" /etc/apk/repositories \
  && apk add --update --no-cache \
-      binutils \
       bash \
+      binutils \
+      gcc \
+      g++ \
       git \
       make \
- && pip3 install poetry
+      libffi-dev \
+ && pip3 install poetry -i "https://${PYPI_SOURCE}/simple"
 
 WORKDIR /tmp/project
 
