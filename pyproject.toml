@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "yuque-exporter"
+version = "0.1.0"
+description = "Yuque-exporter is a simple tool to export Yuque repo to GitHub."
+authors = ["leryn <pinktin@sina.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+gitpython = "3.1.41"
+pytz = "2024.1"
+requests = "2.31.0"
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^3.1.0"
+pytest = "^8.1.1"
+pyinstaller = "^6.5.0"
+
+[[tool.poetry.source]]
+name = "tuna"
+url = "https://pypi.tuna.tsinghua.edu.cn"
+priority = "primary"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

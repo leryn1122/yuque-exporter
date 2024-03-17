@@ -10,7 +10,7 @@ SHA := $(shell git rev-parse --short=8 HEAD 2>/dev/null)
 # Toolchain
 PYTHON := python3
 PYTHON_VERSION := 3.8.10
-PYTHON_MANAGER := pipenv
+PYTHON_MANAGER := poetry
 PYTHON_BUILDER := pyinstaller
 PYTHON_LINTER := pylint
 
@@ -41,7 +41,6 @@ venv: ## Enter local isolated virtual venv
 .PHONY: install
 install: ## Install dependencies
 	$(PYTHON_MANAGER) install
-	$(PYTHON_MANAGER) install -d
 
 .PHONY: check
 check: ## Check
@@ -61,7 +60,7 @@ clean: ## Cleatn target artifact
 
 .PHONY: unittest
 unittest: ## Run all unit tests
-	pipenv run pytest src/**.py
+	$(PYTHON_MANAGER) run pytest src/**.py
 
 .PHONY: test
 test: ## Run all integrity tests
@@ -76,11 +75,7 @@ build: ## Run the target artifact
 	  --onefile $(MAIN_ENTRY_FILE) \
 	  --strip \
 	  --clean \
-	  --icon resources/favicon.ico \
-	  --hidden-import requests \
-	  --hidden-import prettytable \
-	  --hidden-import gitpython \
-	  --hidden-import pytz
+	  --icon resources/favicon.ico
 
 .PHONY: image
 image: ## Build the OCI image

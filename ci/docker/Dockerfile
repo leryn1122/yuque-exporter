@@ -9,15 +9,13 @@ RUN sed -i "s/dl-cdn.alpinelinux.org/${MIRRORS_SOURCE}/g" /etc/apk/repositories 
       bash \
       git \
       make \
- && pip3 install pipenv
+ && pip3 install poetry
 
 WORKDIR /tmp/project
 
 ADD . /tmp/project
 
-RUN sed -i "s/pypi.org/${PYPI_SOURCE}/g" Pipfile \
- && sed -i "s/pypi.org/${PYPI_SOURCE}/g" Pipfile.lock \
- && make install
+RUN make install
 
 RUN make build
 
