@@ -11,6 +11,7 @@ python = ">=3.11,<3.13"
 gitpython = "3.1.41"
 pytz = "2024.1"
 requests = "2.31.0"
+pyyaml = "6.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.1.0"
@@ -19,7 +20,7 @@ pyinstaller = "^6.5.0"
 
 [[tool.poetry.source]]
 name = "tuna"
-url = "https://pypi.tuna.tsinghua.edu.cn"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 priority = "primary"
 
 [build-system]

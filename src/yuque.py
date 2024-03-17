@@ -13,7 +13,8 @@ import support
 from md_filter import (MarkdownProcessFilter,
                        MarkdownEraseEmptyAnchorFilter,
                        MarkdownRewriteImageFilter,
-                       MarkdownEraseLineBreakFilter)
+                       MarkdownEraseLineBreakFilter,
+                       MarkdownAddDocusaurusDescriptionFilter)
 
 
 class YuqueExporter:
@@ -43,12 +44,17 @@ class YuqueExporter:
             with open(user_info_file, encoding='utf-8') as f:
                 user_info = f.read().strip('\n').split('|')
         else:
-            namespace = input('输入语雀namespace: ')
-            access_token = input('输入语雀token: ')
-            user_info = [namespace, access_token]
-            with open(user_info_file, 'w', encoding='utf-8') as f:
-                f.write(namespace + '|' + access_token)
-                log.debug("Save the user info to the file")
+            user_info = self._ask_for_user_info(user_info_file)
+        return user_info
+
+    # noinspection PyMethodMayBeStatic
+    def _ask_for_user_info(self, user_info_file: AnyStr) -> List[AnyStr]:
+        namespace = input('输入语雀namespace: ')
+        access_token = input('输入语雀token: ')
+        user_info = [namespace, access_token]
+        with open(user_info_file, 'w', encoding='utf-8') as f:
+            f.write(namespace + '|' + access_token)
+            log.debug("Save the user info to the file")
         return user_info
 
     def invoke_api(self, url) -> Any:
@@ -80,8 +86,12 @@ class YuqueExporter:
             if len(result) == 0:
                 break
             for _doc in result:
+                # if _doc['slug'] != "readme":
+                #     continue
                 if datetime.fromisoformat(_doc['updated_at']) > self._timestamp \
-                        or datetime.fromisoformat(_doc['content_updated_at']) > self._timestamp:
+                        or datetime.fromisoformat(_doc['content_updated_at']) > self._timestamp\
+                        or datetime.fromisoformat(_doc['published_at']) > self._timestamp\
+                        or True:
                     docs.append({
                         "id": _doc['id'],
                         "name": _doc['title'],
@@ -96,7 +106,8 @@ class YuqueExporter:
         content = result.get('body')
         processor = YuqueDocumentProcessor(token=self._token,
                                            export_dir=self._export_dir,
-                                           content=content)
+                                           content=content,
+                                           doc=result)
         processor.save_markdown(slug)
 
     def dump_repo(self, repo_name: str) -> None:
@@ -128,14 +139,15 @@ class YuqueExporter:
 
 
 class YuqueDocumentProcessor:
-    def __init__(self, token: str, export_dir: str, content: AnyStr):
+    def __init__(self, token: str, export_dir: str, content: AnyStr, doc: Any):
         self._token: str = token
         self._export_dir: str = export_dir
         self._content: str = content
         self._filters: List[MarkdownProcessFilter] = [
             MarkdownEraseEmptyAnchorFilter(),
             MarkdownRewriteImageFilter(path=self._export_dir, token=self._token),
-            MarkdownEraseLineBreakFilter()
+            MarkdownEraseLineBreakFilter(),
+            MarkdownAddDocusaurusDescriptionFilter(doc=doc)
         ]
 
     def save_markdown(self, slug: str):

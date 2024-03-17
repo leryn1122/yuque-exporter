@@ -3,7 +3,10 @@
 import logging as log
 import os
 import re
+from typing import Any
+
 import requests
+import yaml
 
 import support
 
@@ -23,18 +26,6 @@ class MarkdownEraseEmptyAnchorFilter(MarkdownProcessFilter):
 
     def __init__(self):
         self._pattern = r"<a\sname=\"[a-zA-Z0-9]+\"></a>"
-
-    def do_filter(self, content: str, **kwargs) -> str:
-        return re.sub(self._pattern, '\n', content)
-
-
-class MarkdownEraseEmptyAnchorFilter(MarkdownProcessFilter):
-    """
-    Erases empty anchor in markdown.
-    """
-
-    def __init__(self):
-        self._pattern = r"<a\sname=\"[a-zA-Z0-9]+\"></a>\n"
 
     def do_filter(self, content: str, **kwargs) -> str:
         return re.sub(self._pattern, '\n', content)
@@ -90,3 +81,19 @@ class MarkdownEraseLineBreakFilter(MarkdownProcessFilter):
     def do_filter(self, content: str, **kwargs) -> str:
         return re.sub("<br\s?/>", '\n', content)
 
+
+class MarkdownAddDocusaurusDescriptionFilter(MarkdownProcessFilter):
+    def __init__(self, doc: Any):
+        self._id = doc['slug']
+        self._title = doc['title']
+        # self._description = doc['description']
+        self._tags = [item['title'] for item in doc['tags']]
+
+    def do_filter(self, content: str, **kwargs) -> str:
+        metadata = yaml.dump({
+            'id': self._id,
+            'title': self._title,
+            # 'description': self._description if len(self._description) > 0 else content[:50],
+            'tags': self._tags,
+        })
+        return "\n".join(["---", metadata, "---", content])
